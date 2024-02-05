@@ -21,17 +21,45 @@
 	function initCellState(): Cell[][] {
 		const initialArray: Cell[][] = [];
 
-		return Array.from({ length: numberOfPixelsInGrid}).map((_, i) => {
-			return Array.from({ length: numberOfPixelsInGrid }).map((_, j) => {
-				return new Cell(i * pixelSize, j * pixelSize, false, pixelSize);
-			})
-		})
+		for(let i = 0; i < numberOfPixelsInGrid; i++){
+			initialArray[i] = [];
+			for(let j = 0; j < numberOfPixelsInGrid; j++) {
+				initialArray[i].push(new Cell(i * pixelSize, j * pixelSize, false, pixelSize));
+			}
+		}
+
+		return initialArray;
 	}
 
 	function handlePlayPauseClicked() {
 		isPaused = !isPaused;
 
 		frameRate = isPaused ? 60 : 4;
+	}
+
+	function handleResetClicked() {
+		isPaused = true;
+
+		for(let i = 0; i < gridCells.length; i++){
+			for(let j = 0; j < gridCells.length; j++) {
+				gridCells[i][j].kill();
+			}
+		}
+	}
+	
+	
+	function handleRandomiseClicked() {
+		isPaused = true;
+
+		for(let i = 0; i < gridCells.length; i++){
+			for(let j = 0; j < gridCells.length; j++) {
+				if (Math.random() > 0.5) {
+					gridCells[i][j].spawn();
+				} else {
+					gridCells[i][j].kill();
+				}
+			}
+		}
 	}
 
 	function processTick() {
@@ -136,17 +164,26 @@
 					return;
 				}
 
-				cellClicked.spawn();
+				cellClicked.isAlive ? cellClicked.kill() : cellClicked.spawn();
 			})
 		}
 	};
 </script>
 
 <section class="container" class:container--is-paused={isPaused}>
-	<button class="play-pause-button" on:click={() => handlePlayPauseClicked()}>
-		{ isPaused ? 'play' : 'pause' }
-	</button>
+	<div class="menu-container">
+		<button class="button" on:click={() => handlePlayPauseClicked()}>
+			{isPaused ? "Play" : "Pause"}
+		</button>
 
+		<button class="button" on:click={() => handleResetClicked()}>
+			Reset
+		</button>
+
+		<button class="button" on:click={() => handleRandomiseClicked()}>
+			Randomise
+		</button>
+	</div>
 
 	<P5 {sketch} />
 </section>
@@ -158,8 +195,13 @@
 		gap: 12px;
 	}
 
+	.menu-container {
+		display: flex;
+		flex-direction: row;
+		gap: 12px;
+	}
 
-	.play-pause-button {
+	.button {
 		width: fit-content;
 	}
 </style>

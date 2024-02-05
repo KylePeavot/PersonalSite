@@ -179,6 +179,11 @@
 		<button class="button" on:click={() => handleRandomiseClicked()}>
 			Randomise
 		</button>
+
+		<div>
+			<label for="framerate-range">{frameRate} ticks/sec</label>
+			<input id="framerate-range" type="range" min="1" max="30" bind:value={frameRate} />
+		</div>
 	</div>
 
 	<P5 {sketch} />

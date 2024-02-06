@@ -1,31 +1,18 @@
 <script lang="ts">
 	import P5, { type Sketch, type p5 } from "p5-svelte";
-	import { Cell } from "../../../lib/game-of-life/models";
 	import { Toolbar } from "$lib/game-of-life";
+	import { Board } from "$lib/base";
+	import { timer } from "$lib/utils";
 
 	let isPaused = true;
+	let hasChanged = true;
 	let frameRate = 3;
 
-	const numberOfPixelsInGrid = 40;
-	const pixelSize = 20;
-	const gridSize = numberOfPixelsInGrid * pixelSize;
+	const gridLength = 60;
+	const pixelSize = 10;
+	const canvasSize = gridLength * pixelSize;
 
-	const gridCells: Cell[][] = initCellState();
-
-	function initCellState(): Cell[][] {
-		const initialArray: Cell[][] = [];
-
-		for (let i = 0; i < numberOfPixelsInGrid; i++) {
-			initialArray[i] = [];
-			for (let j = 0; j < numberOfPixelsInGrid; j++) {
-				initialArray[i].push(
-					new Cell(i * pixelSize, j * pixelSize, false, pixelSize),
-				);
-			}
-		}
-
-		return initialArray;
-	}
+	const board = new Board(gridLength, pixelSize);
 
 	function handlePlayPauseClicked() {
 		isPaused = !isPaused;
@@ -33,43 +20,32 @@
 
 	function handleResetClicked() {
 		isPaused = true;
-
-		for (let i = 0; i < gridCells.length; i++) {
-			for (let j = 0; j < gridCells.length; j++) {
-				gridCells[i][j].kill();
-			}
-		}
+		hasChanged = true;
+		board.reset();
 	}
 
 	function handleRandomiseClicked() {
 		isPaused = true;
+		hasChanged = true;
 
-		for (let i = 0; i < gridCells.length; i++) {
-			for (let j = 0; j < gridCells.length; j++) {
-				if (Math.random() > 0.5) {
-					gridCells[i][j].spawn();
-				} else {
-					gridCells[i][j].kill();
-				}
-			}
-		}
+		board.randomise();
 	}
 
 	function processTick() {
-		for (let i = 0; i < gridCells.length; i++) {
-			for (let j = 0; j < gridCells.length; j++) {
-				const currentCell = gridCells[i][j];
+		for (let i = 0; i < board.boardCells.length; i++) {
+			for (let j = 0; j < board.boardCells.length; j++) {
+				const currentCell = board.boardCells[i][j];
 
-				const northWestNeighbour = gridCells[i + 1]?.[j - 1];
-				const northNeighbour = gridCells[i + 1]?.[j];
-				const northEastNeighbour = gridCells[i + 1]?.[j + 1];
+				const northWestNeighbour = board.boardCells[i + 1]?.[j - 1];
+				const northNeighbour = board.boardCells[i + 1]?.[j];
+				const northEastNeighbour = board.boardCells[i + 1]?.[j + 1];
 
-				const southWestNeighbour = gridCells[i - 1]?.[j - 1];
-				const southNeighbour = gridCells[i - 1]?.[j];
-				const southEastNeighbour = gridCells[i - 1]?.[j + 1];
+				const southWestNeighbour = board.boardCells[i - 1]?.[j - 1];
+				const southNeighbour = board.boardCells[i - 1]?.[j];
+				const southEastNeighbour = board.boardCells[i - 1]?.[j + 1];
 
-				const eastNeighbour = gridCells[i]?.[j + 1];
-				const westNeighbour = gridCells[i]?.[j - 1];
+				const eastNeighbour = board.boardCells[i]?.[j + 1];
+				const westNeighbour = board.boardCells[i]?.[j - 1];
 
 				const numberOfNeighbours = [
 					northNeighbour,
@@ -85,12 +61,16 @@
 				).length;
 
 				currentCell.loadNextMove(numberOfNeighbours);
+
+				if (currentCell.isAlive !== currentCell.nextAliveState) {
+					hasChanged = true;
+				}
 			}
 		}
 
-		for (let i = 0; i < gridCells.length; i++) {
-			for (let j = 0; j < gridCells.length; j++) {
-				const currentCell = gridCells[i][j];
+		for (let i = 0; i < board.boardCells.length; i++) {
+			for (let j = 0; j < board.boardCells.length; j++) {
+				const currentCell = board.boardCells[i][j];
 
 				currentCell.executeNextMove();
 			}
@@ -99,12 +79,12 @@
 
 	const sketch: Sketch = (p5: p5) => {
 		p5.setup = () => {
-			p5.createCanvas(gridSize, gridSize);
+			p5.createCanvas(canvasSize, canvasSize);
 			p5.background(255);
 
-			for (let i = 0; i < gridCells.length; i++) {
-				for (let j = 0; j < gridCells.length; j++) {
-					const cell = gridCells[i][j];
+			for (let i = 0; i < board.boardCells.length; i++) {
+				for (let j = 0; j < board.boardCells.length; j++) {
+					const cell = board.boardCells[i][j];
 
 					p5.push();
 					if (cell.isAlive) {
@@ -127,9 +107,15 @@
 				p5.frameRate(60);
 			}
 
-			for (let i = 0; i < gridCells.length; i++) {
-				for (let j = 0; j < gridCells.length; j++) {
-					const cell = gridCells[i][j];
+			if (!hasChanged) {
+				return
+			} 
+
+			hasChanged = false;
+
+			for (let i = 0; i < board.boardCells.length; i++) {
+				for (let j = 0; j < board.boardCells.length; j++) {
+					const cell = board.boardCells[i][j];
 					p5.push();
 					if (cell.isAlive) {
 						p5.fill(0);
@@ -146,19 +132,20 @@
 		p5.mouseClicked = () => {
 			const { mouseX, mouseY } = p5;
 
-			if (mouseX < 0 || mouseX > gridSize) {
+			if (mouseX < 0 || mouseX > canvasSize) {
 				return;
 			}
 
-			if (mouseY < 0 || mouseY > gridSize) {
+			if (mouseY < 0 || mouseY > canvasSize) {
 				return;
 			}
 
-			for (let i = 0; i < gridCells.length; i++) {
-				for (let j = 0; j < gridCells.length; j++) {
-					const cell = gridCells[i][j];
+			for (let i = 0; i < board.boardCells.length; i++) {
+				for (let j = 0; j < board.boardCells.length; j++) {
+					const cell = board.boardCells[i][j];
 
 					if (cell.hasBeenClicked(mouseX, mouseY)) {
+						hasChanged = true;
 						cell.isAlive ? cell.kill() : cell.spawn();
 					}
 				}

@@ -1,6 +1,7 @@
 <script lang="ts">
 	import P5, { type Sketch, type p5 } from "p5-svelte";
-	import { Cell } from "../../../lib/models";
+	import { Cell } from "../../../lib/game-of-life/models";
+	import { Toolbar } from "$lib/game-of-life";
 
 	let isPaused = true;
 	let frameRate = 3;
@@ -167,25 +168,13 @@
 </script>
 
 <section class="container" class:container--is-paused={isPaused}>
-	<div class="menu-container">
-		<button class="button" on:click={() => handlePlayPauseClicked()}>
-			{isPaused ? "Play" : "Pause"}
-		</button>
-
-		<button class="button" on:click={() => handleResetClicked()}>
-			Reset
-		</button>
-
-		<button class="button" on:click={() => handleRandomiseClicked()}>
-			Randomise
-		</button>
-
-		<div>
-			<label for="framerate-range">{frameRate} ticks/sec</label>
-			<input id="framerate-range" type="range" min="1" max="30" bind:value={frameRate} />
-		</div>
-	</div>
-
+	<Toolbar
+		bind:frameRate
+		bind:isPaused
+		on:playPauseClicked={handlePlayPauseClicked}
+		on:resetClicked={handleResetClicked}
+		on:randomiseClicked={handleRandomiseClicked}
+	/>
 	<P5 {sketch} />
 </section>
 
@@ -194,15 +183,5 @@
 		display: flex;
 		flex-direction: column;
 		gap: 12px;
-	}
-
-	.menu-container {
-		display: flex;
-		flex-direction: row;
-		gap: 12px;
-	}
-
-	.button {
-		width: fit-content;
 	}
 </style>

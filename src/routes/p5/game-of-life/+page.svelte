@@ -1,8 +1,7 @@
 <script lang="ts">
 	import P5, { type Sketch, type p5 } from "p5-svelte";
 	import { Toolbar } from "$lib/game-of-life";
-	import { Board } from "$lib/base";
-	import { timer } from "$lib/utils";
+    import { Board } from "$lib/common/models";
 
 	let isPaused = true;
 	let hasChanged = true;

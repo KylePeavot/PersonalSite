@@ -4,14 +4,14 @@
     import { Board } from "$lib/common/models";
 
 	let isPaused = true;
-	let hasChanged = true;
 	let frameRate = 3;
 
 	const gridLength = 60;
 	const pixelSize = 10;
 	const canvasSize = gridLength * pixelSize;
 
-	const board = new Board(gridLength, pixelSize);
+	const pastBoardStates: Board[] = [];
+	let board = Board.fromScratch(gridLength, pixelSize);
 
 	function handlePlayPauseClicked() {
 		isPaused = !isPaused;
@@ -19,18 +19,18 @@
 
 	function handleResetClicked() {
 		isPaused = true;
-		hasChanged = true;
 		board.reset();
 	}
 
 	function handleRandomiseClicked() {
 		isPaused = true;
-		hasChanged = true;
 
 		board.randomise();
 	}
 
 	function processTick() {
+		const newBoard = Board.fromScratch(gridLength, pixelSize);
+
 		for (let i = 0; i < board.boardCells.length; i++) {
 			for (let j = 0; j < board.boardCells.length; j++) {
 				const currentCell = board.boardCells[i][j];
@@ -59,21 +59,14 @@
 					(neighbour) => !!neighbour && neighbour.isAlive,
 				).length;
 
-				currentCell.loadNextMove(numberOfNeighbours);
+				const nextMove = currentCell.getNextMove(numberOfNeighbours);
 
-				if (currentCell.isAlive !== currentCell.nextAliveState) {
-					hasChanged = true;
-				}
+				newBoard.boardCells[i][j].isAlive = nextMove;
 			}
 		}
 
-		for (let i = 0; i < board.boardCells.length; i++) {
-			for (let j = 0; j < board.boardCells.length; j++) {
-				const currentCell = board.boardCells[i][j];
-
-				currentCell.executeNextMove();
-			}
-		}
+		pastBoardStates.push(board);
+		board = newBoard;
 	}
 
 	const sketch: Sketch = (p5: p5) => {
@@ -105,12 +98,6 @@
 			} else {
 				p5.frameRate(60);
 			}
-
-			if (!hasChanged) {
-				return
-			} 
-
-			hasChanged = false;
 
 			for (let i = 0; i < board.boardCells.length; i++) {
 				for (let j = 0; j < board.boardCells.length; j++) {
@@ -144,11 +131,14 @@
 					const cell = board.boardCells[i][j];
 
 					if (cell.hasBeenClicked(mouseX, mouseY)) {
-						hasChanged = true;
 						cell.isAlive ? cell.kill() : cell.spawn();
 					}
 				}
 			}
+
+			pastBoardStates.push(board);
+
+			board = Board.fromPreviousState(board, gridLength, pixelSize);
 		};
 	};
 </script>

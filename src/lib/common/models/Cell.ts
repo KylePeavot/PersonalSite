@@ -3,7 +3,6 @@ export class Cell {
     public y: number; 
     public pixelSize: number;
     public isAlive: boolean;
-    public nextAliveState: boolean;
 
     constructor(
         x: number, 
@@ -15,8 +14,6 @@ export class Cell {
         this.y = y;
         this.isAlive = isAlive;
         this.pixelSize = pixelSize;
-
-        this.nextAliveState = isAlive;
     }
 
     /**
@@ -25,27 +22,19 @@ export class Cell {
 	 * Any dead cell with exactly three live neighbors becomes a live cell, as if by reproduction.
 	 * Any live cell with more than three live neighbors dies, as if by overpopulation.
 	 */
-    loadNextMove(numberOfNeighbours: number): void {
+    getNextMove(numberOfNeighbours: number): boolean {
         switch (numberOfNeighbours) {
             case 0:
             case 1:
-                this.nextAliveState = false;
-                break;
+                return false;
             case 2:
-                this.nextAliveState = this.isAlive ? true : false;
-                break;
+                return this.isAlive ? true : false;
             case 3:
-                this.nextAliveState = true;
-                break;
+                return true;
             case 4:
             default:
-                this.nextAliveState = false
-                break;
+                return false
         }
-    }
-
-    executeNextMove(): void {
-        this.isAlive = this.nextAliveState;
     }
 
     hasBeenClicked(mouseX: number, mouseY: number): boolean {

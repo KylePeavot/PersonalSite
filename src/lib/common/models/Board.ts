@@ -3,7 +3,19 @@ import { Cell } from './Cell'
 export class Board {
     boardCells: Cell[][];
 
-    constructor(gridLength: number, pixelSize: number) {
+    static fromScratch(gridLength: number, pixelSize: number) {
+        return new Board(gridLength, pixelSize);
+    }
+    
+    static fromPreviousState(previousBoard: Board, gridLength: number, pixelSize: number) {
+        const newBoard = new Board(gridLength, pixelSize);
+        
+        newBoard.boardCells = previousBoard.boardCells;
+
+        return newBoard;
+    }
+
+    private constructor(gridLength: number, pixelSize: number) {
         this.boardCells = [];
 
         for (let i = 0; i < gridLength; i++) {

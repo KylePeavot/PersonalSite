@@ -20,7 +20,7 @@
 <ul style="list-style-type: none">
     <li>
         <div>
-            <h2><a href="projects/game-of-life">Game of Life</a></h2>
+            <h2><a href="p5/game-of-life">Game of Life</a></h2>
             <p>Add some blurb here about what this is</p>
             <TechnologyList technologies={gameOfLifeTechList} />
         </div>

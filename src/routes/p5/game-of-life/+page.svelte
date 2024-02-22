@@ -143,7 +143,7 @@
 	};
 </script>
 
-<section class="container" class:container--is-paused={isPaused}>
+<section class="flex flex-col gap-3 p-3">
 	<Toolbar
 		bind:frameRate
 		bind:isPaused
@@ -153,11 +153,3 @@
 	/>
 	<P5 {sketch} />
 </section>
-
-<style>
-	.container {
-		display: flex;
-		flex-direction: column;
-		gap: 12px;
-	}
-</style>

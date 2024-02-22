@@ -6,7 +6,7 @@
 
 <div class="technology-list">
     {#each technologies as technology, i}
-        <a href={technology.url}>{technology.name}</a> 
+        <a class="text-blue-600 underline" href={technology.url}>{technology.name}</a> 
         
         {#if i < technologies.length - 1}
             •

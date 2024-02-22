@@ -1,17 +1,17 @@
-<div class="root-div">
-    <slot />
+<script lang="ts">
+    import "../app.css";
+    import { Sidebar } from "$lib/common/components/index";
+</script>
+
+<div class="flex flex-col bg-slate-100 w-full h-full">
+    <Sidebar>
+        <slot />
+    </Sidebar>
 </div>
 
 <style>
     * {
         margin: 0;
         padding: 0;
-    }
-
-    .root-div {
-        display: contents;
-        padding: 6px;
-        background-color: rgb(248 250 252);
-        font-family: "Manrope", sans-serif;
     }
 </style>

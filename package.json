@@ -25,6 +25,7 @@
 	},
 	"type": "module",
 	"dependencies": {
+		"@hotjar/browser": "^1.0.9",
 		"p5-svelte": "^3.1.2"
 	}
 }

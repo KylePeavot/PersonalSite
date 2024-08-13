@@ -12,7 +12,7 @@
     });
 </script>
 
-<div class="flex flex-col bg-slate-100 w-full h-full">
+<div class="flex flex-col bg-yellow-700/10 w-full h-full">
     <Sidebar>
         <slot />
     </Sidebar>

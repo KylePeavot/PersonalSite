@@ -9,7 +9,7 @@
 
 </script>
 
-<li class="border-solid border-slate-400 bg-slate-200 border-2 rounded-md p-1">
+<li class="border-solid border-slate-300 bg-slate-50 border-2 rounded-md p-1">
     <div>
         <h2 class="text-blue-600 underline"><a href="{url}">{title}</a></h2>
         <p>

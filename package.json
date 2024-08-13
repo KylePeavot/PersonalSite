@@ -26,6 +26,8 @@
 	"type": "module",
 	"dependencies": {
 		"@hotjar/browser": "^1.0.9",
+		"@types/mapbox-gl": "^3.1.0",
+		"mapbox-gl": "^3.5.2",
 		"p5-svelte": "^3.1.2"
 	}
 }

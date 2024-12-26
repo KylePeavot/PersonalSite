@@ -25,6 +25,12 @@
                 techList={[typescriptUrlItem, p5jsUrlItem]}
             />
             <ProjectItem
+            title="Bird simulator"
+            url="p5/birds"
+            description="Just some birds"
+            techList={[typescriptUrlItem, p5jsUrlItem]}
+        />
+            <ProjectItem
                 title="Adventure Planner"
                 url="adventure-planner"
                 description="A virtual corkbord world map to track 'Adventures' across the world"

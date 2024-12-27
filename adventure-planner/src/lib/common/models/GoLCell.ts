@@ -1,4 +1,4 @@
-export class Cell {
+export class GoLCell {
     public x: number; 
     public y: number; 
     public pixelSize: number;

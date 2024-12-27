@@ -33,7 +33,7 @@
 
     <div>
         <label for="framerate-range">{frameRate} ticks/sec</label>
-        <input id="framerate-range" type="range" min="1" max="30" bind:value={frameRate} />
+        <input id="framerate-range" type="range" min="1" max="100" bind:value={frameRate} />
     </div>
 </div>
 

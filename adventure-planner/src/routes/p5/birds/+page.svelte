@@ -1,84 +1,74 @@
 <script lang="ts">
-	import P5, { type Sketch, type p5 } from "p5-svelte";
-	import { Toolbar } from "$lib/game-of-life";
   import { Bird } from "$lib/common/models/Bird";
-  import { randomCoord } from "$lib/utils/coords";
-  import { draw } from "svelte/transition";
+  import { clamp } from "$lib/utils/my-math";
+  import P5, { type Sketch, type p5 } from "p5-svelte";
 
-	let isPaused = true;
-	let frameRate = 10;
+  const canvasSize = 600;
+  const frameRate = 120;
 
-    const noOfBirds = 100;
-	const gridLength = 600;
-	const pixelSize = 1;
-	const canvasSize = gridLength * pixelSize;
+  const acceleration = 0.2;
 
-    let birds: Bird[] = [];
+  function initBirds(): Bird[] {
+    const numBirds = 100;
 
-    function initBirds() {
-        birds = [];
+    const birds = [];
 
-        for (let i = 0; i < noOfBirds; i++) {
-            birds.push(new Bird(randomCoord(gridLength), randomCoord(gridLength), 0, 0));
-        }
+    for (let i = 0; i < numBirds; i++) {
+      birds.push(
+        new Bird(
+          Math.random() * canvasSize,
+          Math.random() * canvasSize,
+          0,
+          0,
+          0
+        )
+      );
     }
 
-	function handlePlayPauseClicked() {
-		isPaused = !isPaused;
-	}
+    return birds;
+  }
 
-	function handleResetClicked() {
-		isPaused = true;
-        // board.reset();
-        //what does reset mean for this project?
-	}
+  const birds: Bird[] = initBirds();
 
-	function handleRandomiseClicked() {
-		isPaused = true;
-        
-        initBirds();
-	}
+  function getAngleInRadians(x1: number, y1: number, x2: number, y2: number) {
+    // Calculate the differences in x and y
+    let dx = x2 - x1;
+    let dy = y2 - y1;
 
-    function drawBirds(p5: p5) {
-        birds.forEach((bird) => {
-            p5.fill(0);
-            p5.circle(bird.x, bird.y, pixelSize);
-        });
-    }
+    // Use atan2 to calculate the angle in radians
+    let angle = Math.atan2(dy, dx);
 
-	function processTick(p5: p5) {
-		drawBirds(p5);
-	}
+    return angle; // The angle in radians
+  }
 
-	const sketch: Sketch = (p5: p5) => {
-		p5.setup = () => {
-			p5.createCanvas(canvasSize, canvasSize);
-			p5.background(255);
+  const sketch: Sketch = (p5: p5) => {
+    p5.setup = () => {
+      p5.createCanvas(canvasSize, canvasSize);
+      p5.background(255);
+    };
 
-            initBirds();
+    p5.draw = () => {
+      p5.frameRate(frameRate);
 
-            drawBirds(p5);
+      p5.createCanvas(canvasSize, canvasSize);
+      p5.background(255);
 
-		};
+      birds.forEach((bird) => {
+        const angle = getAngleInRadians(bird.x, bird.y, p5.mouseX, p5.mouseY);
 
-		p5.draw = () => {
-            p5.frameRate(frameRate);
+        bird.vx = clamp(bird.vx + (acceleration * Math.cos(angle)), -2, 2) + Math.random() * 0.1;
+        bird.vy = clamp(bird.vy + (acceleration * Math.sin(angle)), -2, 2) + Math.random() * 0.1;
 
-            p5.createCanvas(canvasSize, canvasSize);
-			p5.background(255);
+        bird.x = clamp(bird.x + bird.vx, 0, canvasSize);
+        bird.y = clamp(bird.y + bird.vy, 0, canvasSize);
 
-            processTick(p5);
-		};
-	};
+        p5.fill(0);
+        p5.circle(bird.x, bird.y, 2);
+      });
+    };
+  };
 </script>
 
 <section class="flex flex-col gap-3 p-3">
-	<Toolbar
-		bind:frameRate
-		bind:isPaused
-		on:playPauseClicked={handlePlayPauseClicked}
-		on:resetClicked={handleResetClicked}
-		on:randomiseClicked={handleRandomiseClicked}
-	/>
-	<P5 {sketch} />
+  <P5 {sketch} />
 </section>

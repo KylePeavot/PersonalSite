@@ -1,15 +1,16 @@
 <script lang="ts">
+  import { Board } from "$lib/common/models";
   import { Bird } from "$lib/common/models/Bird";
   import { clamp } from "$lib/utils/my-math";
   import P5, { type Sketch, type p5 } from "p5-svelte";
 
   const canvasSize = 600;
-  const frameRate = 120;
+  const frameRate = 60;
 
-  const acceleration = 0.2;
+  const acceleration = 1;
 
   function initBirds(): Bird[] {
-    const numBirds = 100;
+    const numBirds = 200;
 
     const birds = [];
 
@@ -20,7 +21,7 @@
           Math.random() * canvasSize,
           0,
           0,
-          0
+          Math.random() * 2 * Math.PI
         )
       );
     }
@@ -28,7 +29,23 @@
     return birds;
   }
 
-  const birds: Bird[] = initBirds();
+  const board = new Board<Bird>({
+    boardSize: canvasSize,
+    boardCells: initBirds(),
+    randomiseFunction: () => {
+      const newBirds: Bird[] = [];
+
+      for (let i = 0; i < canvasSize; i++) {
+        for (let j = 0; j < canvasSize; j++) {
+          if (Math.random() > 0.5) {
+            newBirds.push(new Bird(i, j, 0, 0, 0));
+          }
+        }
+      }
+
+      return newBirds;
+    },
+  });
 
   function getAngleInRadians(x1: number, y1: number, x2: number, y2: number) {
     // Calculate the differences in x and y
@@ -53,14 +70,133 @@
       p5.createCanvas(canvasSize, canvasSize);
       p5.background(255);
 
-      birds.forEach((bird) => {
-        const angle = getAngleInRadians(bird.x, bird.y, p5.mouseX, p5.mouseY);
+      //Average angle in radians of all birds
+      const alignment =
+        board.boardCells.reduce((acc, bird) => acc + bird.direction, 0) /
+        board.boardCells.length;
 
-        bird.vx = clamp(bird.vx + (acceleration * Math.cos(angle)), -2, 2) + Math.random() * 0.1;
-        bird.vy = clamp(bird.vy + (acceleration * Math.sin(angle)), -2, 2) + Math.random() * 0.1;
+      //X,Y coordinates of the center of the flock
+      const cohesion = board.boardCells.reduce(
+        (acc, bird) => {
+          acc.x = (acc.x + bird.x) / 2; //not correct on first bird because it'll be 0 + bird.x/y / 2
+          acc.y = (acc.x + bird.y) / 2; //not correct on first bird because it'll be 0 + bird.x/y / 2
 
-        bird.x = clamp(bird.x + bird.vx, 0, canvasSize);
-        bird.y = clamp(bird.y + bird.vy, 0, canvasSize);
+          return acc;
+        },
+        { x: 0, y: 0 }
+      );
+
+      board.boardCells.forEach((bird) => {
+        //Follow the rules
+        //1. Alignment: Move in the same direction as the other birds
+        //2. Cohesion: Move towards the center of the flock
+        //3. Replusion: Avoid getting too close to other birds
+
+        //if too close to other bird, move opposite to center of flock
+        //if not, get angle from cohesion and average with alignment
+
+        const searchRadius = 5;
+        const birdNeighbours = board.getNeighboursWithinDistance(
+          bird,
+          searchRadius
+        );
+        const isTooClose = birdNeighbours.length >= 1;
+
+        const directionTowardsCenter = getAngleInRadians(
+          bird.x,
+          bird.y,
+          cohesion.x,
+          cohesion.y
+        );
+
+        console.log({
+          birdx: bird.x,
+          birdy: bird.y,
+        });
+
+        if (isTooClose) {
+          // const averageNeighbourLocation = birdNeighbours.reduce(
+          //   (acc, neighbour) => {
+          //     acc.x += neighbour.x;
+          //     acc.y += neighbour.y;
+
+          //     return acc;
+          //   },
+          //   { x: 0, y: 0 }
+          // );
+
+          // const directionToAverageLocation = getAngleInRadians(
+          //   bird.x,
+          //   bird.y,
+          //   averageNeighbourLocation.x / birdNeighbours.length,
+          //   averageNeighbourLocation.y / birdNeighbours.length
+          // );
+
+          // const oppositeDirection =
+          //   (directionToAverageLocation + Math.PI) % (2 * Math.PI);
+
+          // bird.direction = oppositeDirection;
+
+          // construct searchRadius x searchRadius array of valid (inside canvasSize bounds) coordinates
+          // remove all coordinates that are N away from neighbours, the neighbours themselves, and the bird's coordinates
+          // Then choose a random available coordinate and move towards it
+
+          let newRandomCoordinate = {
+            x: Math.round(
+              bird.x + (Math.random() * (searchRadius * 2) - searchRadius)
+            ),
+            y: Math.round(
+              bird.y + (Math.random() * (searchRadius * 2) - searchRadius)
+            ),
+          };
+          let count = 0;
+
+          while (
+            count <= 5 &&
+            birdNeighbours.some((neighbour) => {
+              const distance = Math.sqrt(
+                Math.pow(neighbour.x - newRandomCoordinate.x, 2) +
+                  Math.pow(neighbour.y - newRandomCoordinate.y, 2)
+              );
+
+              return distance < 2;
+            })
+          ) {
+            newRandomCoordinate = {
+              x: Math.round(
+                bird.x + (Math.random() * (searchRadius * 2) - searchRadius)
+              ),
+              y: Math.round(
+                bird.y + (Math.random() * (searchRadius * 2) - searchRadius)
+              ),
+            };
+
+            count++;
+          }
+
+          bird.direction = getAngleInRadians(
+            bird.x,
+            bird.y,
+            newRandomCoordinate.x,
+            newRandomCoordinate.y
+          );
+        } else {
+          const directionTowardsCenterRatio = 0.9;
+
+          bird.direction =
+            directionTowardsCenterRatio * directionTowardsCenter +
+            (1 - directionTowardsCenterRatio) * alignment;
+        }
+
+        bird.vx = Math.round(
+          clamp(bird.vx + acceleration * Math.cos(bird.direction), -2, 2)
+        );
+        bird.vy = Math.round(
+          clamp(bird.vy + acceleration * Math.sin(bird.direction), -2, 2)
+        );
+
+        bird.x = clamp(bird.x + bird.vx, 20, canvasSize - 20);
+        bird.y = clamp(bird.y + bird.vy, 20, canvasSize - 20);
 
         p5.fill(0);
         p5.circle(bird.x, bird.y, 2);

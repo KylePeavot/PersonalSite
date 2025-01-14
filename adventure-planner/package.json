@@ -8,7 +8,7 @@
 		"preview": "vite preview",
 		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
 		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
-	}, 
+	},
 	"devDependencies": {
 		"@sveltejs/adapter-auto": "^3.0.0",
 		"@sveltejs/adapter-netlify": "^4.1.0",
@@ -28,6 +28,7 @@
 		"@hotjar/browser": "^1.0.9",
 		"@types/mapbox-gl": "^3.1.0",
 		"mapbox-gl": "^3.5.2",
-		"p5-svelte": "^3.1.2"
+		"p5-svelte": "^3.1.2",
+		"uuid": "^11.0.3"
 	}
 }

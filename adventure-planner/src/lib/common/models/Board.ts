@@ -1,4 +1,5 @@
 interface BaseCell {
+  id: string;
   x: number;
   y: number;
 }
@@ -34,6 +35,15 @@ export class Board<T extends BaseCell> {
     });
 
     return cellsAs2DArray;
+  }
+
+  getNeighboursWithinDistance(cell: T, distance: number): T[] {
+    return this.boardCells.filter(
+      (otherCell) =>
+        otherCell.id !== cell.id &&
+        Math.abs(cell.x - otherCell.x) <= distance &&
+        Math.abs(cell.y - otherCell.y) <= distance
+    );
   }
 
   reset() {

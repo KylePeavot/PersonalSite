@@ -1,50 +1,56 @@
-import { Cell } from './Cell'
+interface BaseCell {
+  id: string;
+  x: number;
+  y: number;
+}
 
-export class Board {
-    boardCells: Cell[][];
+export class Board<T extends BaseCell> {
+  boardSize: number;
+  boardCells: T[];
+  randomiseFunction: () => T[];
 
-    static fromScratch(gridLength: number, pixelSize: number) {
-        return new Board(gridLength, pixelSize);
-    }
-    
-    static fromPreviousState(previousBoard: Board, gridLength: number, pixelSize: number) {
-        const newBoard = new Board(gridLength, pixelSize);
-        
-        newBoard.boardCells = previousBoard.boardCells;
+  constructor({
+    boardSize,
+    boardCells,
+    randomiseFunction,
+  }: {
+    boardSize: number;
+    boardCells: T[];
+    randomiseFunction: () => T[];
+  }) {
+    this.boardSize = boardSize;
+    this.boardCells = boardCells;
+    this.randomiseFunction = randomiseFunction;
+  }
 
-        return newBoard;
-    }
+  get cellsAs2DArray() {
+    const cellsAs2DArray: T[][] = [];
 
-    private constructor(gridLength: number, pixelSize: number) {
-        this.boardCells = [];
+    this.boardCells.forEach((cell) => {
+      if (!cellsAs2DArray[cell.x]) {
+        cellsAs2DArray[cell.x] = [];
+      }
 
-        for (let i = 0; i < gridLength; i++) {
-            this.boardCells[i] = [];
-            for (let j = 0; j < gridLength; j++) {
-                this.boardCells[i].push(
-                    new Cell(i * pixelSize, j * pixelSize, false, pixelSize),
-                );
-            }
-        }
-    }
+      cellsAs2DArray[cell.x][cell.y] = cell;
+    });
 
-    reset() {
-        for (let i = 0; i < this.boardCells.length; i++) {
-			for (let j = 0; j < this.boardCells.length; j++) {
-				this.boardCells[i][j].kill();
-			}
-		}
-    }
+    return cellsAs2DArray;
+  }
 
-    randomise() {
-        for (let i = 0; i < this.boardCells.length; i++) {
-			for (let j = 0; j < this.boardCells.length; j++) {
-				if (Math.random() > 0.5) {
-					this.boardCells[i][j].spawn();
-				} else {
-					this.boardCells[i][j].kill();
-				}
-			}
-		}
-    }
+  getNeighboursWithinDistance(cell: T, distance: number): T[] {
+    return this.boardCells.filter(
+      (otherCell) =>
+        otherCell.id !== cell.id &&
+        Math.abs(cell.x - otherCell.x) <= distance &&
+        Math.abs(cell.y - otherCell.y) <= distance
+    );
+  }
+
+  reset() {
+    this.boardCells = [];
+  }
+
+  randomise() {
+    this.boardCells = this.randomiseFunction();
+  }
 }

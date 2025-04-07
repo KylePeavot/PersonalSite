@@ -4,6 +4,7 @@ node_modules
 adventure-planner/.svelte-kit
 adventure-planner/.netlify
 adventure-planner/build
+adventure-planner/.nx
 /package
 .env
 .env.*

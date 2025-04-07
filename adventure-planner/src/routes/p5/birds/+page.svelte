@@ -8,9 +8,10 @@
   const frameRate = 60;
 
   const acceleration = 1;
+  const maxSpeed = 1.5;
 
   function initBirds(): Bird[] {
-    const numBirds = 200;
+    const numBirds = 400;
 
     const birds = [];
 
@@ -95,12 +96,12 @@
         //if too close to other bird, move opposite to center of flock
         //if not, get angle from cohesion and average with alignment
 
-        const searchRadius = 5;
+        const searchRadius = 10;
         const birdNeighbours = board.getNeighboursWithinDistance(
           bird,
           searchRadius
         );
-        const isTooClose = birdNeighbours.length >= 1;
+        const isTooClose = birdNeighbours.length >= 2;
 
         const directionTowardsCenter = getAngleInRadians(
           bird.x,
@@ -174,12 +175,16 @@
             count++;
           }
 
-          bird.direction = getAngleInRadians(
-            bird.x,
-            bird.y,
-            newRandomCoordinate.x,
-            newRandomCoordinate.y
-          );
+          if (count >= 5) {
+            bird.direction = alignment;
+          } else {
+            bird.direction = getAngleInRadians(
+              bird.x,
+              bird.y,
+              newRandomCoordinate.x,
+              newRandomCoordinate.y
+            );
+          }
         } else {
           const directionTowardsCenterRatio = 0.9;
 
@@ -188,11 +193,22 @@
             (1 - directionTowardsCenterRatio) * alignment;
         }
 
+        //Change in bird direction should be gradual! As in, the new direction should be e.g. halfway between old and new.
+        //No bird in real life can do an instant 180 but mine apparently can
+
         bird.vx = Math.round(
-          clamp(bird.vx + acceleration * Math.cos(bird.direction), -2, 2)
+          clamp(
+            bird.vx + acceleration * Math.cos(bird.direction), //Not sure about this. It works but I don't fully understand why
+            -maxSpeed,
+            maxSpeed
+          )
         );
         bird.vy = Math.round(
-          clamp(bird.vy + acceleration * Math.sin(bird.direction), -2, 2)
+          clamp(
+            bird.vy + acceleration * Math.sin(bird.direction),
+            -maxSpeed,
+            maxSpeed
+          )
         );
 
         bird.x = clamp(bird.x + bird.vx, 20, canvasSize - 20);

@@ -7,6 +7,10 @@
     url: "https://www.typescriptlang.org/",
   };
   const p5jsUrlItem: UrlItem = { name: "p5.js", url: "https://p5js.org" };
+  const mapboxUrlItem: UrlItem = {
+    name: "mapbox",
+    url: "https://www.mapbox.com/",
+  };
 </script>
 
 <section class="flex flex-col gap-3 p-3">
@@ -44,9 +48,9 @@
       />
       <ProjectItem
         title="Adventure Planner"
-        url="adventure-planner"
+        url="https://adventures.peavot.com"
         description="A virtual corkbord world map to track 'Adventures' across the world"
-        techList={[]}
+        techList={[typescriptUrlItem, mapboxUrlItem]}
       />
     </ul>
   </div>
